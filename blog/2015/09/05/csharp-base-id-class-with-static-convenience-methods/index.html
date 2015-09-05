@@ -88,7 +88,7 @@
 
 <h1 id="goal:8b1a2a9f6a89a7f31fd80bcdf7a56b79">Goal</h1>
 
-<p>Recently I read Vaughn Vernon&rsquo;s <a href="https://vaughnvernon.co/?page_id=168">Implementing Domain-Driven Design</a> book, in it, he uses specific classes for identifiers instead of using basic types for example <code>Guid</code> or <code>String</code>.</p>
+<p>Recently I read Vaughn Vernon&rsquo;s <a href="https://vaughnvernon.co/?page_id=168">Implementing Domain-Driven Design</a> book, in it he uses specific classes for identifiers instead of using basic types for example <code>Guid</code> or <code>String</code>.</p>
 
 <p>It is good because the code will be more readable using for example <code>ProductId</code> and <code>CustomerId</code> types and it help avoiding mistakes of using e.g. product id instead of customer id as method parameter, because the compiler will complain.</p>
 
@@ -172,7 +172,7 @@ class CustomerId : Id
 }
 </code></pre>
 
-<p>It is not too bad, but there should be better solution. I found the <a href="https://en.wikipedia.org/wiki/Curiously_recurring_template_pattern">Curiously recurring template pattern</a>, which can be used to refer the derived class from the base class. This pattern might cause confusion and for complex uses <a href="http://blogs.msdn.com/b/ericlippert/archive/2011/02/03/curiouser-and-curiouser.aspx">it is not recommended</a>, but I think, for the static factory pattern it is very convenient:</p>
+<p>It is not too bad, but there should be better solution. I found the <a href="https://en.wikipedia.org/wiki/Curiously_recurring_template_pattern">Curiously recurring template pattern</a>, which can be used to refer the derived class from the base class. This pattern might cause confusion and for complex uses <a href="http://blogs.msdn.com/b/ericlippert/archive/2011/02/03/curiouser-and-curiouser.aspx">it is not recommended</a>, but I think for the static factory pattern it is very convenient:</p>
 
 <pre><code class="language-c#">class Base&lt;T&gt; where T : Base&lt;T&gt;, new()
 {
@@ -337,6 +337,21 @@ CustomerId customerId = CustomerId.Empty;
                 </nav>
 
                 
+                
+                
+                <div id="disqus_thread"></div>
+                <script type="text/javascript">
+ 
+var disqus_shortname = 'szazo'; 
+
+ 
+(function() {
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+})();
+                </script>
+                <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
                 
                 
             </footer>

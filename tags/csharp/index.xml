@@ -20,7 +20,7 @@
 
 &lt;h1 id=&#34;goal:8b1a2a9f6a89a7f31fd80bcdf7a56b79&#34;&gt;Goal&lt;/h1&gt;
 
-&lt;p&gt;Recently I read Vaughn Vernon&amp;rsquo;s &lt;a href=&#34;https://vaughnvernon.co/?page_id=168&#34;&gt;Implementing Domain-Driven Design&lt;/a&gt; book, in it, he uses specific classes for identifiers instead of using basic types for example &lt;code&gt;Guid&lt;/code&gt; or &lt;code&gt;String&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;Recently I read Vaughn Vernon&amp;rsquo;s &lt;a href=&#34;https://vaughnvernon.co/?page_id=168&#34;&gt;Implementing Domain-Driven Design&lt;/a&gt; book, in it he uses specific classes for identifiers instead of using basic types for example &lt;code&gt;Guid&lt;/code&gt; or &lt;code&gt;String&lt;/code&gt;.&lt;/p&gt;
 
 &lt;p&gt;It is good because the code will be more readable using for example &lt;code&gt;ProductId&lt;/code&gt; and &lt;code&gt;CustomerId&lt;/code&gt; types and it help avoiding mistakes of using e.g. product id instead of customer id as method parameter, because the compiler will complain.&lt;/p&gt;
 
@@ -104,7 +104,7 @@ class CustomerId : Id
 }
 &lt;/code&gt;&lt;/pre&gt;
 
-&lt;p&gt;It is not too bad, but there should be better solution. I found the &lt;a href=&#34;https://en.wikipedia.org/wiki/Curiously_recurring_template_pattern&#34;&gt;Curiously recurring template pattern&lt;/a&gt;, which can be used to refer the derived class from the base class. This pattern might cause confusion and for complex uses &lt;a href=&#34;http://blogs.msdn.com/b/ericlippert/archive/2011/02/03/curiouser-and-curiouser.aspx&#34;&gt;it is not recommended&lt;/a&gt;, but I think, for the static factory pattern it is very convenient:&lt;/p&gt;
+&lt;p&gt;It is not too bad, but there should be better solution. I found the &lt;a href=&#34;https://en.wikipedia.org/wiki/Curiously_recurring_template_pattern&#34;&gt;Curiously recurring template pattern&lt;/a&gt;, which can be used to refer the derived class from the base class. This pattern might cause confusion and for complex uses &lt;a href=&#34;http://blogs.msdn.com/b/ericlippert/archive/2011/02/03/curiouser-and-curiouser.aspx&#34;&gt;it is not recommended&lt;/a&gt;, but I think for the static factory pattern it is very convenient:&lt;/p&gt;
 
 &lt;pre&gt;&lt;code class=&#34;language-c#&#34;&gt;class Base&amp;lt;T&amp;gt; where T : Base&amp;lt;T&amp;gt;, new()
 {
