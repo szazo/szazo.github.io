@@ -22,7 +22,7 @@
 
 &lt;p&gt;Recently I read Vaughn Vernon&amp;rsquo;s &lt;a href=&#34;https://vaughnvernon.co/?page_id=168&#34;&gt;Implementing Domain-Driven Design&lt;/a&gt; book, in it, he uses specific classes for identifiers instead of using basic types for example &lt;code&gt;Guid&lt;/code&gt; or &lt;code&gt;String&lt;/code&gt;.&lt;/p&gt;
 
-&lt;p&gt;It is good because the code will be more readable using for example &lt;code&gt;ProductId&lt;/code&gt; and &lt;code&gt;CustomerId&lt;/code&gt; types and it will help avoid mistakes of using for example product id instead of company id as method parameter, because the compiler will complain.&lt;/p&gt;
+&lt;p&gt;It is good because the code will be more readable using for example &lt;code&gt;ProductId&lt;/code&gt; and &lt;code&gt;CustomerId&lt;/code&gt; types and it help avoiding mistakes of using e.g. product id instead of customer id as method parameter, because the compiler will complain.&lt;/p&gt;
 
 &lt;p&gt;Instead of this:&lt;/p&gt;
 
@@ -62,7 +62,7 @@
 CustomerId emptyId = CustomerId.Empty;
 &lt;/code&gt;&lt;/pre&gt;
 
-&lt;p&gt;For returning instances of the derived type, I needed to implement these methods in all derived classes:&lt;/p&gt;
+&lt;p&gt;For returning instances of the derived type I needed to implement these methods in all derived classes:&lt;/p&gt;
 
 &lt;pre&gt;&lt;code class=&#34;language-c#&#34;&gt;abstract class Id
 {
@@ -104,7 +104,7 @@ class CustomerId : Id
 }
 &lt;/code&gt;&lt;/pre&gt;
 
-&lt;p&gt;It is not too bad, but should be better solution. I found the Curiously recurring template pattern, which can be used to refer the derived class from the base class. This pattern might cause confusion and for complex uses it is not recommended, but I think, for the static factory pattern it is very convenient:&lt;/p&gt;
+&lt;p&gt;It is not too bad, but there should be better solution. I found the &lt;a href=&#34;https://en.wikipedia.org/wiki/Curiously_recurring_template_pattern&#34;&gt;Curiously recurring template pattern&lt;/a&gt;, which can be used to refer the derived class from the base class. This pattern might cause confusion and for complex uses &lt;a href=&#34;http://blogs.msdn.com/b/ericlippert/archive/2011/02/03/curiouser-and-curiouser.aspx&#34;&gt;it is not recommended&lt;/a&gt;, but I think, for the static factory pattern it is very convenient:&lt;/p&gt;
 
 &lt;pre&gt;&lt;code class=&#34;language-c#&#34;&gt;class Base&amp;lt;T&amp;gt; where T : Base&amp;lt;T&amp;gt;, new()
 {
@@ -129,7 +129,7 @@ class Derived2 : Base&amp;lt;Derived2&amp;gt;
 Derived2 instance2 = Derived2.CreateNew ();
 &lt;/code&gt;&lt;/pre&gt;
 
-&lt;p&gt;Applying this for the abstract Id class:&lt;/p&gt;
+&lt;p&gt;Applying this for the abstract &lt;code&gt;Id&lt;/code&gt; class:&lt;/p&gt;
 
 &lt;pre&gt;&lt;code class=&#34;language-c#&#34;&gt;abstract class Id&amp;lt;TDerived&amp;gt; where TDerived : Id&amp;lt;TDerived&amp;gt;, new()
 {
@@ -180,7 +180,7 @@ Derived2 instance2 = Derived2.CreateNew ();
 }
 &lt;/code&gt;&lt;/pre&gt;
 
-&lt;p&gt;Using this you can easily define new Id classes:&lt;/p&gt;
+&lt;p&gt;By using this you can easily define new derived &lt;code&gt;Id&lt;/code&gt; classes:&lt;/p&gt;
 
 &lt;pre&gt;&lt;code class=&#34;language-c#&#34;&gt;class CustomerId : Id&amp;lt;CustomerId&amp;gt;
 {
