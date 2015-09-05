@@ -1,0 +1,1 @@
+# szazo.github.io
