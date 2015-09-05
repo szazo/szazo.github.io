@@ -1,0 +1,214 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Zoltan Szarvas&#39;s dev blog </title>
+    <link>http://localhost:1313/tags/c/</link>
+    <language>en-us</language>
+    <author>Zoltán Szarvas</author>
+    <rights>(C) 2015</rights>
+    <updated>2015-09-05 00:00:00 &#43;0000 UTC</updated>
+
+    
+      
+        <item>
+          <title>C# base Id class with static convenience methods</title>
+          <link>http://localhost:1313/blog/2015/09/05/csharp-base-id-class-with-static-convenience-methods/</link>
+          <pubDate>Sat, 05 Sep 2015 00:00:00 UTC</pubDate>
+          <author>Zoltán Szarvas</author>
+          <guid>http://localhost:1313/blog/2015/09/05/csharp-base-id-class-with-static-convenience-methods/</guid>
+          <description>
+
+&lt;h1 id=&#34;goal:8b1a2a9f6a89a7f31fd80bcdf7a56b79&#34;&gt;Goal&lt;/h1&gt;
+
+&lt;p&gt;Recently I read Vaughn Vernon&amp;rsquo;s &lt;a href=&#34;https://vaughnvernon.co/?page_id=168&#34;&gt;Implementing Domain-Driven Design&lt;/a&gt; book, in it, he uses specific classes for identifiers instead of using basic types for example &lt;code&gt;Guid&lt;/code&gt; or &lt;code&gt;String&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;It is good because the code will be more readable using for example &lt;code&gt;ProductId&lt;/code&gt; and &lt;code&gt;CustomerId&lt;/code&gt; types and it will help avoid mistakes of using for example product id instead of company id as method parameter, because the compiler will complain.&lt;/p&gt;
+
+&lt;p&gt;Instead of this:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c#&#34;&gt;interface IOrder
+{
+    Guid OrderId { get; }
+    Guid ProductId { get; }
+    Guid CustomerId { get; }
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;It looks better:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c#&#34;&gt;interface IInvoice
+{
+    OrderId OrderId { get; }
+    ProductId ProductId { get; }
+    CustomerId CustomerId { get; }
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;If you call this method, you can easily swap parameters without any compiler error:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c#&#34;&gt;void SaveOrder(Guid orderId, Guid productId, Guid customerId);
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;But if you use explicit types, the compiler will complain:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c#&#34;&gt;void SaveOrder(OrderId orderId, ProductId productId, CustomerId customerId);
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h1 id=&#34;solution:8b1a2a9f6a89a7f31fd80bcdf7a56b79&#34;&gt;Solution&lt;/h1&gt;
+
+&lt;p&gt;In C#, I created a &lt;code&gt;Guid&lt;/code&gt; backed base class for these identifiers. I would use static convenience methods for returning empty id and generating new identifiers. For example:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c#&#34;&gt;CustomerId id = CustomerId.GenerateNew ();
+CustomerId emptyId = CustomerId.Empty;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;For returning instances of the derived type, I needed to implement these methods in all derived classes:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c#&#34;&gt;abstract class Id
+{
+    private Guid mUnderlyingId;
+
+    protected Id() {}
+
+    protected static T GenerateNew&amp;lt;T&amp;gt;() where T : Id, new()
+    {
+        Guid guid = Guid.NewGuid ();
+        var id = new T();
+        id.mUnderlyingId = guid;
+
+        return id;
+    }
+
+    protected static T Empty&amp;lt;T&amp;gt;() where T : Id, new()
+    {
+        var id = new T ();
+        return id;
+    }
+
+	/*
+    	...
+    */
+}
+
+class CustomerId : Id
+{
+    public static CustomerId GenerateNew()
+    {
+        return GenerateNew&amp;lt;CustomerId&amp;gt;();
+    }
+
+    public static CustomerId Empty
+    {
+        get { return Empty&amp;lt;CustomerId&amp;gt;(); }
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;It is not too bad, but should be better solution. I found the Curiously recurring template pattern, which can be used to refer the derived class from the base class. This pattern might cause confusion and for complex uses it is not recommended, but I think, for the static factory pattern it is very convenient:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c#&#34;&gt;class Base&amp;lt;T&amp;gt; where T : Base&amp;lt;T&amp;gt;, new()
+{
+    public static T CreateNew()
+    {
+        return new T();
+    }
+}
+
+class Derived1 : Base&amp;lt;Derived1&amp;gt;
+{
+}
+
+class Derived2 : Base&amp;lt;Derived2&amp;gt;
+{
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;You can create derived instances using static factory of the base class:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c#&#34;&gt;Derived1 instance1 = Derived1.CreateNew ();
+Derived2 instance2 = Derived2.CreateNew ();
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Applying this for the abstract Id class:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c#&#34;&gt;abstract class Id&amp;lt;TDerived&amp;gt; where TDerived : Id&amp;lt;TDerived&amp;gt;, new()
+{
+    private Guid mUnderlyingId;
+
+    protected Id() {}
+
+    public static TDerived GenerateNew()
+    {
+        Guid guid = Guid.NewGuid ();
+        var id = new TDerived();
+        id.mUnderlyingId = guid;
+
+        return id;
+    }
+
+    public static TDerived Empty
+    {
+        get
+        {
+            var id = new TDerived();
+            return id;
+        }
+    }
+
+    public override bool Equals(object obj)
+    {
+        if (ReferenceEquals(null, obj)) return false;
+        if (ReferenceEquals(this, obj)) return true;
+        if (obj.GetType() != this.GetType()) return false;
+        return Equals((TDerived) obj);
+    }
+
+    protected bool Equals(TDerived other)
+    {
+        return mUnderlyingId.Equals(other.mUnderlyingId);
+    }
+
+    public override int GetHashCode()
+    {
+        return mUnderlyingId.GetHashCode();
+    }
+
+    public override string ToString()
+    {
+        return mUnderlyingId.ToString();
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Using this you can easily define new Id classes:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c#&#34;&gt;class CustomerId : Id&amp;lt;CustomerId&amp;gt;
+{
+}
+
+class ProductId : Id&amp;lt;ProductId&amp;gt;
+{
+}
+
+class OrderId : Id&amp;lt;OrderId&amp;gt;
+{
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;And you can use the static methods (properties):&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c#&#34;&gt;OrderId orderId = OrderId.GenerateNew ();
+ProductId productId = ProductId.GenerateNew ();
+CustomerId customerId = CustomerId.GenerateNew ();
+
+OrderId orderId = OrderId.Empty;
+ProductId productId = ProductId.Empty;
+CustomerId customerId = CustomerId.Empty;
+&lt;/code&gt;&lt;/pre&gt;
+</description>
+        </item>
+      
+    
+
+  </channel>
+</rss>

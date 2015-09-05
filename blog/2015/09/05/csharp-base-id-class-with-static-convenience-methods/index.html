@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+
+<meta charset="utf-8">
+
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+
+<meta property="og:url" content="http://localhost:1313/">
+
+
+<meta property="og:type" content="article">
+<meta property="og:title" content="C# base Id class with static convenience methods &middot; Zoltan Szarvas&#39;s dev blog">
+
+<meta property="og:site_name" content="Zoltan Szarvas&#39;s dev blog">
+
+<title>
+    
+    C# base Id class with static convenience methods
+    
+</title>
+
+
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap-theme.min.css">
+<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css">
+<link rel="stylesheet" href="//yandex.st/highlightjs/8.0/styles/github.min.css">
+<link rel="stylesheet" href="http://localhost:1313//css/styles.css">
+<link rel="stylesheet" href="http://localhost:1313//css/custom.css">
+
+
+<link rel="shortcut icon" href="http://localhost:1313//assets/favicon.ico">
+
+
+<link rel="alternate" type="application/rss+xml" title="RSS" href="http://localhost:1313//index.xml">
+
+
+<div class="container">
+    <header class="nav">
+        <nav class="navbar navbar-default">
+            <div class="container-fluid">
+                <div class="navbar-header">
+                    <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar-collapse">
+                        <span class="sr-only">Toggle navigation</span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
+                    <a class="navbar-brand" href="http://localhost:1313/">Zoltan Szarvas&#39;s dev blog</a>
+                </div>
+
+                <div class="collapse navbar-collapse" id="navbar-collapse">
+                    <ul class="nav navbar-nav">
+                        <li><a href="http://localhost:1313//post">All Posts</a></li>
+                        <li><a href="http://localhost:1313//tags">Tags</a></li>
+                        
+                    </ul>
+
+                    <ul class="nav navbar-nav navbar-right">
+                        
+                        
+                        
+                        
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+
+<div class="row">
+    <div class="col-md-8">
+        <article class="post">
+
+            <header>
+                <div class="post-date">
+                    <span class="glyphicon glyphicon-calendar"></span>
+                    <time datetime="Sat, Sep 5, 2015">
+                        Sat, Sep 5, 2015
+                    </time>
+                </div>
+                <h1 class="post-title">
+                    <a href="http://localhost:1313/blog/2015/09/05/csharp-base-id-class-with-static-convenience-methods/">C# base Id class with static convenience methods</a>
+                </h1>
+            </header>
+
+            <div class="post-content">
+                
+
+<h1 id="goal:8b1a2a9f6a89a7f31fd80bcdf7a56b79">Goal</h1>
+
+<p>Recently I read Vaughn Vernon&rsquo;s <a href="https://vaughnvernon.co/?page_id=168">Implementing Domain-Driven Design</a> book, in it, he uses specific classes for identifiers instead of using basic types for example <code>Guid</code> or <code>String</code>.</p>
+
+<p>It is good because the code will be more readable using for example <code>ProductId</code> and <code>CustomerId</code> types and it will help avoid mistakes of using for example product id instead of company id as method parameter, because the compiler will complain.</p>
+
+<p>Instead of this:</p>
+
+<pre><code class="language-c#">interface IOrder
+{
+    Guid OrderId { get; }
+    Guid ProductId { get; }
+    Guid CustomerId { get; }
+}
+</code></pre>
+
+<p>It looks better:</p>
+
+<pre><code class="language-c#">interface IInvoice
+{
+    OrderId OrderId { get; }
+    ProductId ProductId { get; }
+    CustomerId CustomerId { get; }
+}
+</code></pre>
+
+<p>If you call this method, you can easily swap parameters without any compiler error:</p>
+
+<pre><code class="language-c#">void SaveOrder(Guid orderId, Guid productId, Guid customerId);
+</code></pre>
+
+<p>But if you use explicit types, the compiler will complain:</p>
+
+<pre><code class="language-c#">void SaveOrder(OrderId orderId, ProductId productId, CustomerId customerId);
+</code></pre>
+
+<h1 id="solution:8b1a2a9f6a89a7f31fd80bcdf7a56b79">Solution</h1>
+
+<p>In C#, I created a <code>Guid</code> backed base class for these identifiers. I would use static convenience methods for returning empty id and generating new identifiers. For example:</p>
+
+<pre><code class="language-c#">CustomerId id = CustomerId.GenerateNew ();
+CustomerId emptyId = CustomerId.Empty;
+</code></pre>
+
+<p>For returning instances of the derived type, I needed to implement these methods in all derived classes:</p>
+
+<pre><code class="language-c#">abstract class Id
+{
+    private Guid mUnderlyingId;
+
+    protected Id() {}
+
+    protected static T GenerateNew&lt;T&gt;() where T : Id, new()
+    {
+        Guid guid = Guid.NewGuid ();
+        var id = new T();
+        id.mUnderlyingId = guid;
+
+        return id;
+    }
+
+    protected static T Empty&lt;T&gt;() where T : Id, new()
+    {
+        var id = new T ();
+        return id;
+    }
+
+	/*
+    	...
+    */
+}
+
+class CustomerId : Id
+{
+    public static CustomerId GenerateNew()
+    {
+        return GenerateNew&lt;CustomerId&gt;();
+    }
+
+    public static CustomerId Empty
+    {
+        get { return Empty&lt;CustomerId&gt;(); }
+    }
+}
+</code></pre>
+
+<p>It is not too bad, but should be better solution. I found the Curiously recurring template pattern, which can be used to refer the derived class from the base class. This pattern might cause confusion and for complex uses it is not recommended, but I think, for the static factory pattern it is very convenient:</p>
+
+<pre><code class="language-c#">class Base&lt;T&gt; where T : Base&lt;T&gt;, new()
+{
+    public static T CreateNew()
+    {
+        return new T();
+    }
+}
+
+class Derived1 : Base&lt;Derived1&gt;
+{
+}
+
+class Derived2 : Base&lt;Derived2&gt;
+{
+}
+</code></pre>
+
+<p>You can create derived instances using static factory of the base class:</p>
+
+<pre><code class="language-c#">Derived1 instance1 = Derived1.CreateNew ();
+Derived2 instance2 = Derived2.CreateNew ();
+</code></pre>
+
+<p>Applying this for the abstract Id class:</p>
+
+<pre><code class="language-c#">abstract class Id&lt;TDerived&gt; where TDerived : Id&lt;TDerived&gt;, new()
+{
+    private Guid mUnderlyingId;
+
+    protected Id() {}
+
+    public static TDerived GenerateNew()
+    {
+        Guid guid = Guid.NewGuid ();
+        var id = new TDerived();
+        id.mUnderlyingId = guid;
+
+        return id;
+    }
+
+    public static TDerived Empty
+    {
+        get
+        {
+            var id = new TDerived();
+            return id;
+        }
+    }
+
+    public override bool Equals(object obj)
+    {
+        if (ReferenceEquals(null, obj)) return false;
+        if (ReferenceEquals(this, obj)) return true;
+        if (obj.GetType() != this.GetType()) return false;
+        return Equals((TDerived) obj);
+    }
+
+    protected bool Equals(TDerived other)
+    {
+        return mUnderlyingId.Equals(other.mUnderlyingId);
+    }
+
+    public override int GetHashCode()
+    {
+        return mUnderlyingId.GetHashCode();
+    }
+
+    public override string ToString()
+    {
+        return mUnderlyingId.ToString();
+    }
+}
+</code></pre>
+
+<p>Using this you can easily define new Id classes:</p>
+
+<pre><code class="language-c#">class CustomerId : Id&lt;CustomerId&gt;
+{
+}
+
+class ProductId : Id&lt;ProductId&gt;
+{
+}
+
+class OrderId : Id&lt;OrderId&gt;
+{
+}
+</code></pre>
+
+<p>And you can use the static methods (properties):</p>
+
+<pre><code class="language-c#">OrderId orderId = OrderId.GenerateNew ();
+ProductId productId = ProductId.GenerateNew ();
+CustomerId customerId = CustomerId.GenerateNew ();
+
+OrderId orderId = OrderId.Empty;
+ProductId productId = ProductId.Empty;
+CustomerId customerId = CustomerId.Empty;
+</code></pre>
+
+            </div>
+
+            <aside>
+                
+                <ul class="list-inline post-tags">
+                    
+                    <li>
+                        <a href="http://localhost:1313//tags/c">
+                            <i class="fa fa-tags"></i>
+                            c#
+                        </a>
+                    </li>
+                    
+                    <li>
+                        <a href="http://localhost:1313//tags/curiously-recurring-template-pattern">
+                            <i class="fa fa-tags"></i>
+                            Curiously recurring template pattern
+                        </a>
+                    </li>
+                    
+                    <li>
+                        <a href="http://localhost:1313//tags/ddd">
+                            <i class="fa fa-tags"></i>
+                            DDD
+                        </a>
+                    </li>
+                    
+                </ul>
+
+                
+                
+                <h3>Related Post</h3>
+                <ul class="post-rels">
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                </ul>
+            </aside>
+            
+            
+            <footer>
+
+                <nav>
+                    <ul class="pager">
+
+                        
+                        <li class="previous disabled"><a href="#"><span aria-hidden="true">&larr;</span> Older</a></li>
+                        
+
+                        <li><a href="http://localhost:1313//post">All Posts</a></li>
+
+                        
+                        <li class="next disabled"><a href="#">Newer <span aria-hidden="true">&rarr;</span></a></li>
+                        
+
+                    </ul>
+                </nav>
+
+                
+                
+                
+            </footer>
+
+        </article>
+    </div>
+    <div class="col-md-4">
+        
+<aside>
+    <div class="row">
+
+        <div class="col-xs-12 col-sm-4 col-md-12">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h2 class="panel-title">Recent Posts</h2>
+                </div>
+                <div class="list-group">
+                    
+                    <a href="/blog/2015/09/05/csharp-base-id-class-with-static-convenience-methods/" class="list-group-item">C# base Id class with static convenience methods</a>
+                    
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xs-12 col-sm-4 col-md-12">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h2 class="panel-title">Tags</h2>
+                </div>
+                <div class="list-group">
+                    
+                    
+                    
+                    <a href="http://localhost:1313//tags/c" class="list-group-item">
+                        <span class="badge">1</span>
+                        c#
+                    </a>
+                    
+                    
+                    <a href="http://localhost:1313//tags/curiously-recurring-template-pattern" class="list-group-item">
+                        <span class="badge">1</span>
+                        curiously-recurring-template-pattern
+                    </a>
+                    
+                    
+                    <a href="http://localhost:1313//tags/ddd" class="list-group-item">
+                        <span class="badge">1</span>
+                        ddd
+                    </a>
+                    
+                </div>
+            </div>
+        </div>
+
+    </div>
+</aside>
+
+    </div>
+</div>
+
+</div>
+<hr>
+
+<footer class="container copy">
+    <p>&copy; 2015  Zoltán Szarvas </p>
+	<p>Powered by <a href="http://gohugo.io" target="_blank">Hugo</a></p>
+	<p>Theme <a href="https://github.com/dim0627/hugo_theme_hugostrap" target="_blank">Hugostrap</a> designed by <a href="http://yet.unresolved.xyz" target="_blank">Daisuke Tsuji</a>, Inspired from <a href="https://github.com/kAworu/octostrap3" target="_blank">Octostrap3</a></p>
+</footer>
+
+<script src="//code.jquery.com/jquery-2.1.3.min.js"></script>
+<script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.1/js/bootstrap.min.js"></script>
+<script src="//yandex.st/highlightjs/8.0/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+
+<script>
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+ga('create', '', 'auto');
+ga('send', 'pageview');
+
+</script>
+
+<script>
+document.write('<script src="//sharebutton.net/plugin/sharebutton.php?type=horizontal&u=' + encodeURIComponent(document.location.href) + '"></scr' + 'ipt>');
+</script>
+
