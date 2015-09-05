@@ -2,7 +2,7 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Zoltan Szarvas&#39;s dev blog </title>
-    <link>http://localhost:39993/tags/c/</link>
+    <link>http://szazo.github.io/tags/c/</link>
     <language>en-us</language>
     <author>Zoltán Szarvas</author>
     <rights>(C) 2015</rights>
@@ -12,10 +12,10 @@
       
         <item>
           <title>C# base Id class with static convenience methods</title>
-          <link>http://localhost:39993/blog/2015/09/05/csharp-base-id-class-with-static-convenience-methods/</link>
+          <link>http://szazo.github.io/blog/2015/09/05/csharp-base-id-class-with-static-convenience-methods/</link>
           <pubDate>Sat, 05 Sep 2015 00:00:00 UTC</pubDate>
           <author>Zoltán Szarvas</author>
-          <guid>http://localhost:39993/blog/2015/09/05/csharp-base-id-class-with-static-convenience-methods/</guid>
+          <guid>http://szazo.github.io/blog/2015/09/05/csharp-base-id-class-with-static-convenience-methods/</guid>
           <description>
 
 &lt;h1 id=&#34;goal:8b1a2a9f6a89a7f31fd80bcdf7a56b79&#34;&gt;Goal&lt;/h1&gt;
