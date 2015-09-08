@@ -8,16 +8,14 @@
 <meta property="og:url" content="http://szazo.github.io">
 
 
-<meta property="og:type" content="website">
-
-<meta property="og:title" content="Zoltan Szarvas&#39;s dev blog">
-
+<meta property="og:type" content="article">
+<meta property="og:title" content="Using Moodle Choice activity for event application &middot; Zoltan Szarvas&#39;s dev blog">
 
 <meta property="og:site_name" content="Zoltan Szarvas&#39;s dev blog">
 
 <title>
     
-    Zoltan Szarvas&#39;s dev blog
+    Using Moodle Choice activity for event application
     
 </title>
 
@@ -71,70 +69,132 @@
 
 <div class="row">
     <div class="col-md-8">
-        <div class="posts">
-            
-            
-<article class="post">
-    <header>
-        <div class="post-date">
-            <span class="glyphicon glyphicon-calendar"></span>
-            <time datetime="Mon, Sep 7, 2015">
-                Mon, Sep 7, 2015
-            </time>
-        </div>
-        <h1 class="post-title">
-            <a href="http://szazo.github.io/blog/2015/09/07/using-moodle-choice-activity-for-event-application/">Using Moodle Choice activity for event application</a>
-        </h1>
-    </header>
-    <div class="post-content">
-        One of our customer would use Moodle for an event application, because all of the users are already in it and they wouldn&rsquo;t use a new system for this. In an event there were more groups. Users allowed to join into this groups by selecting a role. Every group was limited number of places in every role. I wouldn&rsquo;t install any plugin for this, after some research, I found that the Choice activity is good for this.
-    </div>
-    <footer class="readon">
-        <a href="http://szazo.github.io/blog/2015/09/07/using-moodle-choice-activity-for-event-application/" class="btn btn-default">
-            READ ON
-        </a>
-    </footer>
-</article>
-<hr>
+        <article class="post">
 
-            
-            
-<article class="post">
-    <header>
-        <div class="post-date">
-            <span class="glyphicon glyphicon-calendar"></span>
-            <time datetime="Sat, Sep 5, 2015">
-                Sat, Sep 5, 2015
-            </time>
-        </div>
-        <h1 class="post-title">
-            <a href="http://szazo.github.io/blog/2015/09/05/csharp-base-id-class-with-static-convenience-methods/">C# base Id class with static convenience methods</a>
-        </h1>
-    </header>
-    <div class="post-content">
-        <h1 id="goal:8b1a2a9f6a89a7f31fd80bcdf7a56b79">Goal</h1>
+            <header>
+                <div class="post-date">
+                    <span class="glyphicon glyphicon-calendar"></span>
+                    <time datetime="Mon, Sep 7, 2015">
+                        Mon, Sep 7, 2015
+                    </time>
+                </div>
+                <h1 class="post-title">
+                    <a href="http://szazo.github.io/blog/2015/09/07/using-moodle-choice-activity-for-event-application/">Using Moodle Choice activity for event application</a>
+                </h1>
+            </header>
 
-<p>Recently I read Vaughn Vernon&rsquo;s <a href="https://vaughnvernon.co/?page_id=168">Implementing Domain-Driven Design</a> book, in it he uses specific classes for identifiers instead of using basic types for example <code>Guid</code> or <code>String</code>.</p>
+            <div class="post-content">
+                <p>One of our customer would use Moodle for an event application, because all of the users are already in it and they wouldn&rsquo;t use a new system for this.</p>
 
-<p>It is good because the code will be more readable using for example <code>ProductId</code> and <code>CustomerId</code> types and it help avoiding mistakes of using e.g. product id instead of customer id as method parameter, because the compiler will complain.</p>
+<p>In an event there were more groups. Users allowed to join into this groups by selecting a role. Every group was limited number of places in every role.</p>
 
-    </div>
-    <footer class="readon">
-        <a href="http://szazo.github.io/blog/2015/09/05/csharp-base-id-class-with-static-convenience-methods/" class="btn btn-default">
-            READ ON
-        </a>
-    </footer>
-</article>
-<hr>
+<p>I wouldn&rsquo;t install any plugin for this, after some research, I found that the <strong>Choice</strong> activity is good for this.</p>
 
-            
-            <nav>
-                <ul class="pager">
-                    <li><a href="http://szazo.github.io/post">All Posts</a></li>
+<p>We created choices for each group in the course, then we used  <strong>Option</strong> for each role and we set limit for every role.</p>
+
+<p>After users applied into the groups, we could query the event applications using this query:</p>
+
+<pre><code class="language-sql">SET @CourseId = 42;
+
+SELECT 
+	user.id userid, 
+	user.username,
+	user.firstname,
+	user.lastname,
+	user.email,
+	choice.name groupname,
+	choice_options.text role
+
+FROM mdl_user user
+INNER JOIN mdl_choice_answers choice_answers ON choice_answers.userid = user.id
+INNER JOIN mdl_choice choice ON choice.id = choice_answers.choiceid
+INNER JOIN mdl_choice_options choice_options ON choice_options.id = choice_answers.optionid
+WHERE choice.course = @CourseId
+ORDER BY user.lastname;
+</code></pre>
+
+<p>This method can be also used for selecting a room in an event where the <strong>Option</strong> will represent one room with limited places.</p>
+
+            </div>
+
+            <aside>
+                
+                <ul class="list-inline post-tags">
+                    
+                    <li>
+                        <a href="http://szazo.github.io/tags/moodle">
+                            <i class="fa fa-tags"></i>
+                            Moodle
+                        </a>
+                    </li>
+                    
+                    <li>
+                        <a href="http://szazo.github.io/tags/">
+                            <i class="fa fa-tags"></i>
+                            
+                        </a>
+                    </li>
+                    
                 </ul>
-            </nav>
 
-        </div>
+                
+                
+                <h3>Related Post</h3>
+                <ul class="post-rels">
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                </ul>
+            </aside>
+            
+            
+            <footer>
+
+                <nav>
+                    <ul class="pager">
+
+                        
+                        <li class="previous disabled"><a href="#"><span aria-hidden="true">&larr;</span> Older</a></li>
+                        
+
+                        <li><a href="http://szazo.github.io/post">All Posts</a></li>
+
+                        
+                        <li class="next"><a href="http://szazo.github.io/blog/2015/09/05/csharp-base-id-class-with-static-convenience-methods/">Newer <span aria-hidden="true">&rarr;</span></a></li>
+                        
+
+                    </ul>
+                </nav>
+
+                
+                
+                
+                <div id="disqus_thread"></div>
+                <script type="text/javascript">
+ 
+var disqus_shortname = 'szazo'; 
+
+ 
+(function() {
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+})();
+                </script>
+                <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+                
+                
+            </footer>
+
+        </article>
     </div>
     <div class="col-md-4">
         

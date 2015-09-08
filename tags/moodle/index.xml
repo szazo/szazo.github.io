@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Zoltan Szarvas&#39;s dev blog </title>
+    <link>http://szazo.github.io/tags/moodle/</link>
+    <language>en-us</language>
+    <author>Zoltán Szarvas</author>
+    <rights>(C) 2015</rights>
+    <updated>2015-09-07 16:31:30 &#43;0200 CEST</updated>
+
+    
+      
+        <item>
+          <title>Using Moodle Choice activity for event application</title>
+          <link>http://szazo.github.io/blog/2015/09/07/using-moodle-choice-activity-for-event-application/</link>
+          <pubDate>Mon, 07 Sep 2015 16:31:30 CEST</pubDate>
+          <author>Zoltán Szarvas</author>
+          <guid>http://szazo.github.io/blog/2015/09/07/using-moodle-choice-activity-for-event-application/</guid>
+          <description>&lt;p&gt;One of our customer would use Moodle for an event application, because all of the users are already in it and they wouldn&amp;rsquo;t use a new system for this.&lt;/p&gt;
+
+&lt;p&gt;In an event there were more groups. Users allowed to join into this groups by selecting a role. Every group was limited number of places in every role.&lt;/p&gt;
+
+&lt;p&gt;I wouldn&amp;rsquo;t install any plugin for this, after some research, I found that the &lt;strong&gt;Choice&lt;/strong&gt; activity is good for this.&lt;/p&gt;
+
+&lt;p&gt;We created choices for each group in the course, then we used  &lt;strong&gt;Option&lt;/strong&gt; for each role and we set limit for every role.&lt;/p&gt;
+
+&lt;p&gt;After users applied into the groups, we could query the event applications using this query:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-sql&#34;&gt;SET @CourseId = 42;
+
+SELECT 
+	user.id userid, 
+	user.username,
+	user.firstname,
+	user.lastname,
+	user.email,
+	choice.name groupname,
+	choice_options.text role
+
+FROM mdl_user user
+INNER JOIN mdl_choice_answers choice_answers ON choice_answers.userid = user.id
+INNER JOIN mdl_choice choice ON choice.id = choice_answers.choiceid
+INNER JOIN mdl_choice_options choice_options ON choice_options.id = choice_answers.optionid
+WHERE choice.course = @CourseId
+ORDER BY user.lastname;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;This method can be also used for selecting a room in an event where the &lt;strong&gt;Option&lt;/strong&gt; will represent one room with limited places.&lt;/p&gt;
+</description>
+        </item>
+      
+    
+
+  </channel>
+</rss>
