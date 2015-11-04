@@ -86,16 +86,16 @@
             <div class="post-content">
                 
 
-<p>I have recently started using Vagrant with VirtualBox for isolating development environments for several projects on my Ubuntu. I can create a clean development environment with preinstalled softwares easily.</p>
+<p>I have recently started using Vagrant with VirtualBox to isolate development environments for several projects on my Ubuntu. In this way I can create a clean development environment with preinstalled softwares easily.</p>
 
-<p>Now I am creating a new box with Windows 10 with Visual Studio 2015. I would like to document the main steps of creating the template virtual machine without going into detailed configuration possibilities of components I use.</p>
+<p>In this tutorial I will create a new Windows 10 box with Visual Studio 2015. I would like to document the main steps of creating the template virtual machine without going into details about configuration possibilities of the components I use.</p>
 
 <h1 id="the-main-components:52f7bf6e5cad5066e34477d395d37734">The main components</h1>
 
 <ul>
-<li><a href="https://www.vagrantup.com/">Vagrant</a>: This is used for managing template virtual machines (boxes) and create, manage and destroy virtual machine instances from them easily.</li>
-<li><a href="https://www.virtualbox.org/">VirtualBox</a>: The desktop virtualization product I use with Vagrant, but you can use Vagrant with other VMs also (e.g VMWare, Hyper-V).</li>
-<li><a href="https://www.packer.io/">Packer</a>: It is used to create template boxes for Vagrant. It installs and preconfigures virtual machines with several OSs. It supports more virtualization infrastructures too.</li>
+<li><a href="https://www.vagrantup.com/">Vagrant</a>: This is used for managing template virtual machines (boxes) and create, manage and destroy virtual machine instances from these boxes easily.</li>
+<li><a href="https://www.virtualbox.org/">VirtualBox</a>: The desktop virtualization product I use with Vagrant, but you can use Vagrant with other VMs as well (e.g VMWare, Hyper-V).</li>
+<li><a href="https://www.packer.io/">Packer</a>: It is used to create template boxes for Vagrant. It installs and preconfigures virtual machines with several OSs. It supports other virtualization infrastructures too.</li>
 <li><a href="https://github.com/joefitzgerald/packer-windows">Packer Windows templates</a>: Packer configuration files and scripts for creating Windows boxes.</li>
 </ul>
 
@@ -140,7 +140,7 @@
 <pre><code>sha1sum en_windows_10_multiple_editions_x64_dvd_6846432.iso
 </code></pre></li>
 
-<li><p>Execute packer in the <code>packer-windows</code> directory by providing iso name and generated hash. The <code>-only=virtualbox-iso</code> tells that only VirtualBox target will be created.:</p>
+<li><p>Execute packer in the <code>packer-windows</code> directory by providing iso name and generated hash. The <code>-only=virtualbox-iso</code> tells that only VirtualBox target will be created:</p>
 
 <pre><code>~/packer/packer build -var iso_url=./iso/en_windows_10_multiple_editions_x64_dvd_6846432.iso -var iso_checksum=60cce9e9c6557335b4f7b18d02cfe2b438a8b3e2 -only=virtualbox-iso windows_10.json
 </code></pre></li>
@@ -200,7 +200,7 @@ choco install foxitreader
 choco install consolez
 </code></pre></li>
 
-<li><p>Create new <code>windows10_vs2015/Vagrantfile.pkg</code> file, this will be packaged into the box and contains base configurations for the box (the local Vagrantfile in the actual instance&rsquo;s folder inherits this):</p>
+<li><p>Create new <code>windows10_vs2015/Vagrantfile.pkg</code> file, this will be packaged into the box containing base configurations for the box (the local Vagrantfile in the actual instance&rsquo;s folder inherits this):</p>
 
 <pre><code>Vagrant.configure(&quot;2&quot;) do |config|
     config.vm.communicator = &quot;winrm&quot;
