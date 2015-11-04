@@ -9,13 +9,13 @@
 
 
 <meta property="og:type" content="article">
-<meta property="og:title" content="Using Moodle Choice activity for event application &middot; Zoltan&#39;s dev blog">
+<meta property="og:title" content="Creating Windows 10 Visual Studio 2015 VirtualBox Vagrant box using Packer &middot; Zoltan&#39;s dev blog">
 
 <meta property="og:site_name" content="Zoltan&#39;s dev blog">
 
 <title>
     
-    Using Moodle Choice activity for event application
+    Creating Windows 10 Visual Studio 2015 VirtualBox Vagrant box using Packer
     
 </title>
 
@@ -74,46 +74,191 @@
             <header>
                 <div class="post-date">
                     <span class="glyphicon glyphicon-calendar"></span>
-                    <time datetime="Mon, Sep 7, 2015">
-                        Mon, Sep 7, 2015
+                    <time datetime="Wed, Nov 4, 2015">
+                        Wed, Nov 4, 2015
                     </time>
                 </div>
                 <h1 class="post-title">
-                    <a href="http://szazo.github.io/blog/2015/09/07/using-moodle-choice-activity-for-event-application/">Using Moodle Choice activity for event application</a>
+                    <a href="http://szazo.github.io/blog/2015/11/04/creating-windows-10-visual-studio-2015-virtualbox-vagrant-box-using-packer/">Creating Windows 10 Visual Studio 2015 VirtualBox Vagrant box using Packer</a>
                 </h1>
             </header>
 
             <div class="post-content">
-                <p>One of our customer would use Moodle for an event application, because all of the users are already in it and they wouldn&rsquo;t use a new system for this.</p>
+                
 
-<p>In an event there were more groups. Users allowed to join into this groups by selecting a role. Every group was limited number of places in every role.</p>
+<p>I have recently started using Vagrant with VirtualBox for isolating development environments for several projects on my Ubuntu. I can create a clean development environment with preinstalled softwares easily.</p>
 
-<p>I wouldn&rsquo;t install any plugin for this, after some research, I found that the <strong>Choice</strong> activity is good for this.</p>
+<p>Now I am creating a new box with Windows 10 with Visual Studio 2015. I would like to document the main steps of creating the template virtual machine without going into detailed configuration possibilities of components I use.</p>
 
-<p>We created choices for each group in the course, then we used  <strong>Option</strong> for each role and we set limit for every role.</p>
+<h1 id="the-main-components:52f7bf6e5cad5066e34477d395d37734">The main components</h1>
 
-<p>After users applied into the groups, we could query the event applications using this query:</p>
+<ul>
+<li><a href="https://www.vagrantup.com/">Vagrant</a>: This is used for managing template virtual machines (boxes) and create, manage and destroy virtual machine instances from them easily.</li>
+<li><a href="https://www.virtualbox.org/">VirtualBox</a>: The desktop virtualization product I use with Vagrant, but you can use Vagrant with other VMs also (e.g VMWare, Hyper-V).</li>
+<li><a href="https://www.packer.io/">Packer</a>: It is used to create template boxes for Vagrant. It installs and preconfigures virtual machines with several OSs. It supports more virtualization infrastructures too.</li>
+<li><a href="https://github.com/joefitzgerald/packer-windows">Packer Windows templates</a>: Packer configuration files and scripts for creating Windows boxes.</li>
+</ul>
 
-<pre><code class="language-sql">SET @CourseId = 42;
+<h1 id="steps:52f7bf6e5cad5066e34477d395d37734">Steps</h1>
 
-SELECT 
-	user.id userid, 
-	user.username,
-	user.firstname,
-	user.lastname,
-	user.email,
-	choice.name groupname,
-	choice_options.text role
+<h2 id="creating-windows-10-base-box:52f7bf6e5cad5066e34477d395d37734">Creating Windows 10 base box</h2>
 
-FROM mdl_user user
-INNER JOIN mdl_choice_answers choice_answers ON choice_answers.userid = user.id
-INNER JOIN mdl_choice choice ON choice.id = choice_answers.choiceid
-INNER JOIN mdl_choice_options choice_options ON choice_options.id = choice_answers.optionid
-WHERE choice.course = @CourseId
-ORDER BY user.lastname;
-</code></pre>
+<ol>
+<li><p>Download and intall <a href="https://www.vagrantup.com/">Vagrant</a> then install winrm-fs plugin, this will be required for running provision script on Windows 10 guest:</p>
 
-<p>This method can be also used for selecting a room in an event where the <strong>Option</strong> will represent one room with limited places.</p>
+<pre><code>vagrant plugin install winrm-fs
+</code></pre></li>
+
+<li><p>Install <a href="https://www.virtualbox.org/">VirtualBox</a>.</p></li>
+
+<li><p>Download Packer from <a href="http://www.packer.io/downloads.html">http://www.packer.io/downloads.html</a> and extract e.g. into <code>~/packer</code> directory.</p></li>
+
+<li><p>Download packer templates from <code>https://github.com/joefitzgerald</code>:</p>
+
+<pre><code>git clone https://github.com/joefitzgerald/packer-windows.git
+</code></pre></li>
+
+<li><p>Download Windows iso and place in <code>packer-windows/iso</code> folder. I downloaded <code>en_windows_10_multiple_editions_x64_dvd_6846432.iso</code> from my MSDN account.</p></li>
+
+<li><p>By default the Windows 10 template will create C: drive with size 60GB, I changed it in <code>windows_10.json</code> under <code>virtualbox-iso</code> builder. You can make another configuration changes here, like memory amount or CPU count:</p>
+
+<pre><code>&quot;type&quot;: &quot;virtualbox-iso&quot;,
+...
+&quot;disk_size&quot;: 184320,
+</code></pre></li>
+
+<li><p>Open <code>packer-windows/answer_files/10/Autounattend.xml</code> and find <code>&lt;ProductKey&gt;</code> element and enter valid product key under <code>&lt;Key&gt;</code> element:</p>
+
+<pre><code>&lt;ProductKey&gt;
+    &lt;Key&gt;XXXXX-XXXXX-XXXXX-XXXXX-XXXXX&lt;/Key&gt;
+    &lt;WillShowUI&gt;Never&lt;/WillShowUI&gt;
+&lt;/ProductKey&gt;
+</code></pre></li>
+
+<li><p>Generate SHA1 hash for the ISO</p>
+
+<pre><code>sha1sum en_windows_10_multiple_editions_x64_dvd_6846432.iso
+</code></pre></li>
+
+<li><p>Execute packer in the <code>packer-windows</code> directory by providing iso name and generated hash. The <code>-only=virtualbox-iso</code> tells that only VirtualBox target will be created.:</p>
+
+<pre><code>~/packer/packer build -var iso_url=./iso/en_windows_10_multiple_editions_x64_dvd_6846432.iso -var iso_checksum=60cce9e9c6557335b4f7b18d02cfe2b438a8b3e2 -only=virtualbox-iso windows_10.json
+</code></pre></li>
+
+<li><p>This will create and preconfigure the reusable VirtualBox compatible Vagrant box with name <code>windows_10_virtualbox.box</code> (install windows updates, virtualbox guest additions, vagrant provision tools, etc).</p></li>
+
+<li><p>Import the box into vagrant with name <code>windows10</code>:</p>
+
+<pre><code>vagrant box add windows10 ./windows_10_virtualbox.box
+</code></pre></li>
+</ol>
+
+<p>After this step vagrant instances can be created using the bare Windows 10 box.</p>
+
+<h2 id="install-visual-studio-2015-and-configure-provision-script:52f7bf6e5cad5066e34477d395d37734">Install Visual Studio 2015 and configure provision script</h2>
+
+<p>Now, I would like to install Visual Studio, so I create a vagrant instance using <code>windows10</code> box, install Visual Studio and then export the box.</p>
+
+<ol>
+<li><p>Create a new VM:</p>
+
+<pre><code>mkdir windows10_vs2015
+cd windows10_vs2015
+vagrant init windows10
+</code></pre></li>
+
+<li><p>Enable gui in the created <code>Vagrantfile</code> by uncommenting the following lines:</p>
+
+<pre><code>config.vm.provider &quot;virtualbox&quot; do |vb|
+    vb.gui = true
+end
+</code></pre></li>
+
+<li><p>Turn on the VM:</p>
+
+<pre><code>vagrant up
+</code></pre></li>
+
+<li><p>Install Visual Studio 2015 and do any necessary modifications of the VM.</p></li>
+
+<li><p>I usually create provision script which installs <a href="https://chocolatey.org/">Chocolatey</a> and other softwares using it. The provision script will be executed when <code>vagrant up</code> is called at the first time on the exported box. Create <code>windows10_vs2015/provision/provision.ps1</code> script:</p>
+
+<pre><code>iex ((new-object net.webclient).DownloadString('https://chocolatey.org/install.ps1'))
+chocolatey feature enable -n allowGlobalConfirmation
+choco install totalcommander
+choco install resharper
+choco install gitextensions
+choco install notepadplusplus
+choco install GoogleChrome
+choco install kdiff3
+choco install yed
+choco install atom
+choco install webstorm
+choco install haroopad
+choco install libreoffice
+choco install foxitreader
+choco install consolez
+</code></pre></li>
+
+<li><p>Create new <code>windows10_vs2015/Vagrantfile.pkg</code> file, this will be packaged into the box and contains base configurations for the box (the local Vagrantfile in the actual instance&rsquo;s folder inherits this):</p>
+
+<pre><code>Vagrant.configure(&quot;2&quot;) do |config|
+    config.vm.communicator = &quot;winrm&quot;
+
+
+    config.winrm.username = &quot;vagrant&quot;
+    config.winrm.password = &quot;vagrant&quot;
+
+
+    config.vm.guest = :windows
+    config.windows.halt_timeout = 15
+
+
+    config.vm.network :forwarded_port, guest: 3389, host: 3389, id: &quot;rdp&quot;, auto_correct: true
+    config.vm.network :forwarded_port, guest: 22, host: 2222, id: &quot;ssh&quot;, auto_correct: true
+
+
+    config.vm.provider :virtualbox do |v, override|
+        v.gui = true
+        v.customize [&quot;modifyvm&quot;, :id, &quot;--memory&quot;, 2048]
+        v.customize [&quot;modifyvm&quot;, :id, &quot;--cpus&quot;, 2]
+        v.customize [&quot;setextradata&quot;, &quot;global&quot;, &quot;GUI/SuppressMessages&quot;, &quot;all&quot; ]
+    end
+
+
+    config.vm.provision &quot;shell&quot; do |s|
+      p = File.expand_path(&quot;../&quot;, __FILE__)
+      s.path = p + &quot;/provision/provision.ps1&quot;
+    end
+end
+</code></pre></li>
+
+<li><p>Now export the modified virtual machine:</p>
+
+<pre><code>vagrant package --output windows10_vs2015.box --vagrantfile ./Vagrantfile.pkg --include ./provision/*
+</code></pre></li>
+
+<li><p>After executing the command, <code>windows10_vs2015.box</code> will be created in the current current directory.</p></li>
+
+<li><p>Import the created box into vagrant using the following command:</p>
+
+<pre><code>vagrant box add --name windows10_vs2015 windows10_vs2015.box
+</code></pre></li>
+</ol>
+
+<h2 id="testing-the-box:52f7bf6e5cad5066e34477d395d37734">Testing the box</h2>
+
+<ol>
+<li><p>Create a new VM and up the box:</p>
+
+<pre><code>mkdir windows10_vs2015_test
+cd windows10_vs2015_test
+vagrant init windows10_vs2015
+vagrant up
+</code></pre></li>
+</ol>
+
+<p>After executing the command you will have a Windows 10 box with Visual Studio 2015 and preinstalled softwares you configured in provision script.</p>
 
             </div>
 
@@ -122,16 +267,37 @@ ORDER BY user.lastname;
                 <ul class="list-inline post-tags">
                     
                     <li>
-                        <a href="http://szazo.github.io/tags/moodle">
+                        <a href="http://szazo.github.io/tags/vagrant">
                             <i class="fa fa-tags"></i>
-                            Moodle
+                            Vagrant
                         </a>
                     </li>
                     
                     <li>
-                        <a href="http://szazo.github.io/tags/">
+                        <a href="http://szazo.github.io/tags/virtualbox">
                             <i class="fa fa-tags"></i>
-                            
+                            VirtualBox
+                        </a>
+                    </li>
+                    
+                    <li>
+                        <a href="http://szazo.github.io/tags/visual-studio">
+                            <i class="fa fa-tags"></i>
+                            Visual Studio
+                        </a>
+                    </li>
+                    
+                    <li>
+                        <a href="http://szazo.github.io/tags/windows-10">
+                            <i class="fa fa-tags"></i>
+                            Windows 10
+                        </a>
+                    </li>
+                    
+                    <li>
+                        <a href="http://szazo.github.io/tags/packer">
+                            <i class="fa fa-tags"></i>
+                            Packer
                         </a>
                     </li>
                     
@@ -166,13 +332,13 @@ ORDER BY user.lastname;
                     <ul class="pager">
 
                         
-                        <li class="previous"><a href="http://szazo.github.io/blog/2015/11/04/creating-windows-10-visual-studio-2015-virtualbox-vagrant-box-using-packer/"><span aria-hidden="true">&larr;</span> Older</a></li>
+                        <li class="previous disabled"><a href="#"><span aria-hidden="true">&larr;</span> Older</a></li>
                         
 
                         <li><a href="http://szazo.github.io/post">All Posts</a></li>
 
                         
-                        <li class="next"><a href="http://szazo.github.io/blog/2015/09/05/csharp-base-id-class-with-static-convenience-methods/">Newer <span aria-hidden="true">&rarr;</span></a></li>
+                        <li class="next"><a href="http://szazo.github.io/blog/2015/09/07/using-moodle-choice-activity-for-event-application/">Newer <span aria-hidden="true">&rarr;</span></a></li>
                         
 
                     </ul>

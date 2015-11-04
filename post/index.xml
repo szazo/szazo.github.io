@@ -6,8 +6,194 @@
     <language>en-us</language>
     <author>Zoltán Szarvas</author>
     <rights>(C) 2015</rights>
-    <updated>2015-09-07 16:31:30 &#43;0200 CEST</updated>
+    <updated>2015-11-04 10:31:30 &#43;0000 UTC</updated>
 
+    
+      
+        <item>
+          <title>Creating Windows 10 Visual Studio 2015 VirtualBox Vagrant box using Packer</title>
+          <link>http://szazo.github.io/blog/2015/11/04/creating-windows-10-visual-studio-2015-virtualbox-vagrant-box-using-packer/</link>
+          <pubDate>Wed, 04 Nov 2015 10:31:30 UTC</pubDate>
+          <author>Zoltán Szarvas</author>
+          <guid>http://szazo.github.io/blog/2015/11/04/creating-windows-10-visual-studio-2015-virtualbox-vagrant-box-using-packer/</guid>
+          <description>
+
+&lt;p&gt;I have recently started using Vagrant with VirtualBox for isolating development environments for several projects on my Ubuntu. I can create a clean development environment with preinstalled softwares easily.&lt;/p&gt;
+
+&lt;p&gt;Now I am creating a new box with Windows 10 with Visual Studio 2015. I would like to document the main steps of creating the template virtual machine without going into detailed configuration possibilities of components I use.&lt;/p&gt;
+
+&lt;h1 id=&#34;the-main-components:52f7bf6e5cad5066e34477d395d37734&#34;&gt;The main components&lt;/h1&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://www.vagrantup.com/&#34;&gt;Vagrant&lt;/a&gt;: This is used for managing template virtual machines (boxes) and create, manage and destroy virtual machine instances from them easily.&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://www.virtualbox.org/&#34;&gt;VirtualBox&lt;/a&gt;: The desktop virtualization product I use with Vagrant, but you can use Vagrant with other VMs also (e.g VMWare, Hyper-V).&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://www.packer.io/&#34;&gt;Packer&lt;/a&gt;: It is used to create template boxes for Vagrant. It installs and preconfigures virtual machines with several OSs. It supports more virtualization infrastructures too.&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/joefitzgerald/packer-windows&#34;&gt;Packer Windows templates&lt;/a&gt;: Packer configuration files and scripts for creating Windows boxes.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h1 id=&#34;steps:52f7bf6e5cad5066e34477d395d37734&#34;&gt;Steps&lt;/h1&gt;
+
+&lt;h2 id=&#34;creating-windows-10-base-box:52f7bf6e5cad5066e34477d395d37734&#34;&gt;Creating Windows 10 base box&lt;/h2&gt;
+
+&lt;ol&gt;
+&lt;li&gt;&lt;p&gt;Download and intall &lt;a href=&#34;https://www.vagrantup.com/&#34;&gt;Vagrant&lt;/a&gt; then install winrm-fs plugin, this will be required for running provision script on Windows 10 guest:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;vagrant plugin install winrm-fs
+&lt;/code&gt;&lt;/pre&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;Install &lt;a href=&#34;https://www.virtualbox.org/&#34;&gt;VirtualBox&lt;/a&gt;.&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;Download Packer from &lt;a href=&#34;http://www.packer.io/downloads.html&#34;&gt;http://www.packer.io/downloads.html&lt;/a&gt; and extract e.g. into &lt;code&gt;~/packer&lt;/code&gt; directory.&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;Download packer templates from &lt;code&gt;https://github.com/joefitzgerald&lt;/code&gt;:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;git clone https://github.com/joefitzgerald/packer-windows.git
+&lt;/code&gt;&lt;/pre&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;Download Windows iso and place in &lt;code&gt;packer-windows/iso&lt;/code&gt; folder. I downloaded &lt;code&gt;en_windows_10_multiple_editions_x64_dvd_6846432.iso&lt;/code&gt; from my MSDN account.&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;By default the Windows 10 template will create C: drive with size 60GB, I changed it in &lt;code&gt;windows_10.json&lt;/code&gt; under &lt;code&gt;virtualbox-iso&lt;/code&gt; builder. You can make another configuration changes here, like memory amount or CPU count:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;&amp;quot;type&amp;quot;: &amp;quot;virtualbox-iso&amp;quot;,
+...
+&amp;quot;disk_size&amp;quot;: 184320,
+&lt;/code&gt;&lt;/pre&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;Open &lt;code&gt;packer-windows/answer_files/10/Autounattend.xml&lt;/code&gt; and find &lt;code&gt;&amp;lt;ProductKey&amp;gt;&lt;/code&gt; element and enter valid product key under &lt;code&gt;&amp;lt;Key&amp;gt;&lt;/code&gt; element:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;&amp;lt;ProductKey&amp;gt;
+    &amp;lt;Key&amp;gt;XXXXX-XXXXX-XXXXX-XXXXX-XXXXX&amp;lt;/Key&amp;gt;
+    &amp;lt;WillShowUI&amp;gt;Never&amp;lt;/WillShowUI&amp;gt;
+&amp;lt;/ProductKey&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;Generate SHA1 hash for the ISO&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;sha1sum en_windows_10_multiple_editions_x64_dvd_6846432.iso
+&lt;/code&gt;&lt;/pre&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;Execute packer in the &lt;code&gt;packer-windows&lt;/code&gt; directory by providing iso name and generated hash. The &lt;code&gt;-only=virtualbox-iso&lt;/code&gt; tells that only VirtualBox target will be created.:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;~/packer/packer build -var iso_url=./iso/en_windows_10_multiple_editions_x64_dvd_6846432.iso -var iso_checksum=60cce9e9c6557335b4f7b18d02cfe2b438a8b3e2 -only=virtualbox-iso windows_10.json
+&lt;/code&gt;&lt;/pre&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;This will create and preconfigure the reusable VirtualBox compatible Vagrant box with name &lt;code&gt;windows_10_virtualbox.box&lt;/code&gt; (install windows updates, virtualbox guest additions, vagrant provision tools, etc).&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;Import the box into vagrant with name &lt;code&gt;windows10&lt;/code&gt;:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;vagrant box add windows10 ./windows_10_virtualbox.box
+&lt;/code&gt;&lt;/pre&gt;&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;After this step vagrant instances can be created using the bare Windows 10 box.&lt;/p&gt;
+
+&lt;h2 id=&#34;install-visual-studio-2015-and-configure-provision-script:52f7bf6e5cad5066e34477d395d37734&#34;&gt;Install Visual Studio 2015 and configure provision script&lt;/h2&gt;
+
+&lt;p&gt;Now, I would like to install Visual Studio, so I create a vagrant instance using &lt;code&gt;windows10&lt;/code&gt; box, install Visual Studio and then export the box.&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;&lt;p&gt;Create a new VM:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;mkdir windows10_vs2015
+cd windows10_vs2015
+vagrant init windows10
+&lt;/code&gt;&lt;/pre&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;Enable gui in the created &lt;code&gt;Vagrantfile&lt;/code&gt; by uncommenting the following lines:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;config.vm.provider &amp;quot;virtualbox&amp;quot; do |vb|
+    vb.gui = true
+end
+&lt;/code&gt;&lt;/pre&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;Turn on the VM:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;vagrant up
+&lt;/code&gt;&lt;/pre&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;Install Visual Studio 2015 and do any necessary modifications of the VM.&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;I usually create provision script which installs &lt;a href=&#34;https://chocolatey.org/&#34;&gt;Chocolatey&lt;/a&gt; and other softwares using it. The provision script will be executed when &lt;code&gt;vagrant up&lt;/code&gt; is called at the first time on the exported box. Create &lt;code&gt;windows10_vs2015/provision/provision.ps1&lt;/code&gt; script:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;iex ((new-object net.webclient).DownloadString(&#39;https://chocolatey.org/install.ps1&#39;))
+chocolatey feature enable -n allowGlobalConfirmation
+choco install totalcommander
+choco install resharper
+choco install gitextensions
+choco install notepadplusplus
+choco install GoogleChrome
+choco install kdiff3
+choco install yed
+choco install atom
+choco install webstorm
+choco install haroopad
+choco install libreoffice
+choco install foxitreader
+choco install consolez
+&lt;/code&gt;&lt;/pre&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;Create new &lt;code&gt;windows10_vs2015/Vagrantfile.pkg&lt;/code&gt; file, this will be packaged into the box and contains base configurations for the box (the local Vagrantfile in the actual instance&amp;rsquo;s folder inherits this):&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;Vagrant.configure(&amp;quot;2&amp;quot;) do |config|
+    config.vm.communicator = &amp;quot;winrm&amp;quot;
+
+
+    config.winrm.username = &amp;quot;vagrant&amp;quot;
+    config.winrm.password = &amp;quot;vagrant&amp;quot;
+
+
+    config.vm.guest = :windows
+    config.windows.halt_timeout = 15
+
+
+    config.vm.network :forwarded_port, guest: 3389, host: 3389, id: &amp;quot;rdp&amp;quot;, auto_correct: true
+    config.vm.network :forwarded_port, guest: 22, host: 2222, id: &amp;quot;ssh&amp;quot;, auto_correct: true
+
+
+    config.vm.provider :virtualbox do |v, override|
+        v.gui = true
+        v.customize [&amp;quot;modifyvm&amp;quot;, :id, &amp;quot;--memory&amp;quot;, 2048]
+        v.customize [&amp;quot;modifyvm&amp;quot;, :id, &amp;quot;--cpus&amp;quot;, 2]
+        v.customize [&amp;quot;setextradata&amp;quot;, &amp;quot;global&amp;quot;, &amp;quot;GUI/SuppressMessages&amp;quot;, &amp;quot;all&amp;quot; ]
+    end
+
+
+    config.vm.provision &amp;quot;shell&amp;quot; do |s|
+      p = File.expand_path(&amp;quot;../&amp;quot;, __FILE__)
+      s.path = p + &amp;quot;/provision/provision.ps1&amp;quot;
+    end
+end
+&lt;/code&gt;&lt;/pre&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;Now export the modified virtual machine:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;vagrant package --output windows10_vs2015.box --vagrantfile ./Vagrantfile.pkg --include ./provision/*
+&lt;/code&gt;&lt;/pre&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;After executing the command, &lt;code&gt;windows10_vs2015.box&lt;/code&gt; will be created in the current current directory.&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;Import the created box into vagrant using the following command:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;vagrant box add --name windows10_vs2015 windows10_vs2015.box
+&lt;/code&gt;&lt;/pre&gt;&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h2 id=&#34;testing-the-box:52f7bf6e5cad5066e34477d395d37734&#34;&gt;Testing the box&lt;/h2&gt;
+
+&lt;ol&gt;
+&lt;li&gt;&lt;p&gt;Create a new VM and up the box:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;mkdir windows10_vs2015_test
+cd windows10_vs2015_test
+vagrant init windows10_vs2015
+vagrant up
+&lt;/code&gt;&lt;/pre&gt;&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;After executing the command you will have a Windows 10 box with Visual Studio 2015 and preinstalled softwares you configured in provision script.&lt;/p&gt;
+</description>
+        </item>
+      
     
       
         <item>
