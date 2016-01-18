@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Zoltan&#39;s dev blog </title>
+    <link>http://szazo.github.io/tags/sensor/</link>
+    <language>en-us</language>
+    <author>Zoltán Szarvas</author>
+    <rights>(C) 2016</rights>
+    <updated>2016-01-18 10:00:00 &#43;0000 UTC</updated>
+
+    
+      
+        <item>
+          <title>DHT11 sensor reading on Raspberry PI 2</title>
+          <link>http://szazo.github.io/blog/2016/01/18/dht11-sensor-reading-on-raspberry-pi-2/</link>
+          <pubDate>Mon, 18 Jan 2016 10:00:00 UTC</pubDate>
+          <author>Zoltán Szarvas</author>
+          <guid>http://szazo.github.io/blog/2016/01/18/dht11-sensor-reading-on-raspberry-pi-2/</guid>
+          <description>&lt;p&gt;I recently bought a Raspberry PI 2 and started playing with it.&lt;/p&gt;
+
+&lt;p&gt;At first experimented with DHT11 digital temperature and humidity sensor using Python. I tried to read data only by reading the user manual of the sensor. I had timing issues (which I accounted for that the Raspberian is not real time operating system and secondly that I used interpreted Python), but I finally create a small library that uses bare Python (with GPIO library) and works most of the time:&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;https://github.com/szazo/DHT11_Python&#34;&gt;https://github.com/szazo/DHT11_Python&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Using e.g. &lt;a href=&#34;https://thingspeak.com&#34;&gt;ThingSpeak&lt;/a&gt; the data can be sent continously to the cloud and can be visualized as graph:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;import RPi.GPIO as GPIO
+import dht11
+import time
+import datetime
+import urllib2
+
+# initialize GPIO
+GPIO.setwarnings(False)
+GPIO.setmode(GPIO.BCM)
+GPIO.cleanup()
+
+# read data using pin 14
+instance = dht11.DHT11(pin = 14)
+
+api_key = &amp;quot;TODO: ---ThingSpeak API KEY---&amp;quot;
+base_url = &amp;quot;http://api.thingspeak.com/update?api_key=%s&amp;quot; % api_key
+
+while True:
+    result = instance.read()
+    if result.is_valid():
+        print(&amp;quot;Last valid input: &amp;quot; + str(datetime.datetime.now()))
+        print(&amp;quot;Temperature: %d C&amp;quot; % result.temperature)
+        print(&amp;quot;Humidity: %d %%&amp;quot; % result.humidity)
+        try:
+            url = base_url + &amp;quot;&amp;amp;field1=%s&amp;amp;field2=%s&amp;quot; % (result.temperature, result.humidity)
+            print(url)
+            f = urllib2.urlopen(url)
+            print f.read()
+            f.close()           
+        except:
+            print(&amp;quot;error&amp;quot;)
+            pass
+    time.sleep(600)     
+&lt;/code&gt;&lt;/pre&gt;
+</description>
+        </item>
+      
+    
+
+  </channel>
+</rss>
