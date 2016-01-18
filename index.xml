@@ -18,7 +18,7 @@
           <guid>http://szazo.github.io/blog/2016/01/18/dht11-sensor-reading-on-raspberry-pi-2/</guid>
           <description>&lt;p&gt;I recently bought a Raspberry PI 2 and started playing with it.&lt;/p&gt;
 
-&lt;p&gt;At first experimented with DHT11 digital temperature and humidity sensor using Python. I tried to read data only by reading the user manual of the sensor. I had timing issues (which I accounted for that the Raspberian is not real time operating system and secondly that I used interpreted Python), but I finally create a small library that uses bare Python (with GPIO library) and works most of the time:&lt;/p&gt;
+&lt;p&gt;At first I experimented with DHT11 digital temperature and humidity sensor using Python. I tried to read data only by reading the user manual of the sensor. I had timing issues (which I accounted for that the Raspberian is not real time operating system and secondly that I used interpreted Python), but I finally create a small library that uses bare Python (with GPIO library) and works most of the time:&lt;/p&gt;
 
 &lt;p&gt;&lt;a href=&#34;https://github.com/szazo/DHT11_Python&#34;&gt;https://github.com/szazo/DHT11_Python&lt;/a&gt;&lt;/p&gt;
 
